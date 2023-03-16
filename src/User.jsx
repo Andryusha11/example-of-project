@@ -1,57 +1,40 @@
-import React, { Component } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
 
-class User extends Component {
-  state = {
-    user: null,
-  };
+const baseUrl = 'https://api.github.com/users';
 
-  componentDidMount = () => {
-    this.fetchUser();
-  };
+const User = () => {
+  const { userId } = useParams();
+  const [userData, setUserData] = useState(null);
 
-  componentDidUpdate = (prevProps) => {
-    if (prevProps.match.params.userId !== this.props.match.params.userId) {
-      this.fetchUser();
-    }
-  };
+  const fetchUserData = userName =>
+    fetch(`${baseUrl}/${userName}`).then(res => {
+      if (!res.ok) {
+        throw new Error('Oops');
+      }
+      return res.json();
+    });
 
-  fetchUser = () => {
-    const { match } = this.props;
-    fetch(`https://api.github.com/users/${match.params.userId}`)
-      .then((response) => {
-        if (response.ok) {
-          return response.json();
-        }
-        throw new Error();
-      })
-      .then((data) => {
-        this.setState({
-          user: data,
-        });
-      });
-  };
+  useEffect(() => {
+    fetchUserData(userId).then(userData => setUserData(userData));
+    return setUserData(null);
+  }, [userId]);
 
-  render() {
-    const { user } = this.state;
-    if (!user) {
-      return null;
-    }
-    return (
+  return (
+    userData && (
       <div className="user">
         <img
           alt="User Avatar"
-          src={this.state.user.avatar_url}
+          src={userData.avatar_url}
           className="user__avatar"
         />
         <div className="user__info">
-          <span className="user__name">{this.state.user.name}</span>
-          <span className="user__location">{this.state.user.location}</span>
+          <span className="user__name">{userData.name}</span>
+          <span className="user__location">{userData.location}</span>
         </div>
       </div>
-    );
-  }
-}
+    )
+  );
+};
 
 export default User;
-
-// {this.state.user}
